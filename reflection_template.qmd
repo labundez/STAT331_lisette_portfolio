@@ -1,6 +1,6 @@
 ---
 title: "STAT 331 Portfolio"
-author: "Your Name Goes Here"
+author: "Lisette Abundez"
 format: 
   html: 
     self-contained: true
@@ -11,7 +11,7 @@ execute:
   echo: true
 ---
 
-[**My Grade:**]{.underline} I believe my grade equivalent to course work evidenced below to be an __.
+[**My Grade:**]{.underline} I believe my grade equivalent to course work evidenced below to be a B.
 
 [**Learning Objective Evidence:**]{.underline} In the code chunks below, provide code from Lab or Challenge assignments where you believe you have demonstrated proficiency with the specified learning target. Be sure to specify **where** the code came from (e.g., Lab 4 Question 2).
 
@@ -23,28 +23,56 @@ execute:
 
 ```{r}
 #| label: wd-1-csv
+#Lab 2 Question 1
+library(here)
 
+surveys <- read_csv(here("data", "surveys.csv"))
 ```
+
+-   
 
 -   `xlsx`
 
 ```{r}
 #| label: wd-1-xlsx
-
+#Check-in 2:3: Importing Data, Question 5
+agesxl <- read_xlsx(path = here::here("check-ins", "2.1-loading-data", "Ages_Data", "ages.xlsx"), sheet = "ages")
 ```
 
 -   `txt`
 
 ```{r}
 #| label: wd-1-txt
-
+#Check-in 2:3: Importing Data, Question 3
+ages_tab <- read_table(file = here::here("Week 2", "Check-ins", "Ages_Data", "ages_tab.txt"))
 ```
 
 **WD-2: I can select necessary columns from a dataset.**
 
 ```{r}
 #| label: wd-2
+#Lab 3, Quesiton 5
+teacher_evals_clean <- evals|>
+  rename(sex = gender) |>
+  filter(no_participants > 10) |>
+  mutate(
+    across(c(teacher_id, 
+             question_no, 
+             seniority), 
+           as.character)
+            ) |>
+  select(course_id,
+         teacher_id,
+         question_no,
+         no_participants,
+         resp_share,
+         SET_score_avg,
+         percent_failed_cur,
+         academic_degree,
+         seniority, 
+         sex)
 
+#Revised. Dr T provided feedback that led me to change my filter() and make the data type change more efficient by using the across() function!
 ```
 
 **WD-3: I can filter rows from a dataframe for a *variety* of data types (e.g., numeric, integer, character, factor, date).**
@@ -53,13 +81,43 @@ execute:
 
 ```{r}
 #| label: wd-3-numeric
+#Lab 3, Quesiton 5
 
+teacher_evals_clean <- evals|>
+  rename(sex = gender) |>
+  filter(no_participants > 10) |>
+  mutate(
+    across(c(teacher_id, 
+             question_no, 
+             seniority), 
+           as.character)
+            ) |>
+  select(course_id,
+         teacher_id,
+         question_no,
+         no_participants,
+         resp_share,
+         SET_score_avg,
+         percent_failed_cur,
+         academic_degree,
+         seniority, 
+         sex)
+  
+#Revised. Dr T provided feedback that led me to change my filter() and make the data type change more efficient by using the across() function!
 ```
 
 -   character -- specifically a string (example must use functions from **stringr**)
 
 ```{r}
 #| label: wd-3-string
+#Lab 5, Tracking Second Witness
+person |>
+  inner_join(interview, 
+             by = join_by(id == person_id)
+             ) |>
+  filter(str_detect(name, "^Annabel"),
+         address_street_name == "Franklin Ave") |>
+  pull(transcript)
 
 ```
 
@@ -67,14 +125,37 @@ execute:
 
 ```{r}
 #| label: wd-3-factor
+# Lab 4 Question 4
 
+income <- ca_childcare |>
+  filter(study_year %in% c(2008, 2018)) |>
+  group_by(region, study_year) |>
+  summarise(median_income = median(mhi_2018, na.rm = TRUE), .groups = 'drop') |>
+  pivot_wider(names_from = study_year,
+              values_from = median_income) |>
+  rename(
+    "Median Income in 2008 (2018 Dollars)" = `2008`,
+    "Median Income in 2018 (2018 Dollars)" = `2018`
+  ) |>
+  arrange(`Median Income in 2018 (2018 Dollars)`)
+
+#Revised. Based on feedback to give column names better titles, I used the rename() function to better name the two income columns. 
 ```
 
 -   date (example must use functions from **lubridate**)
 
 ```{r}
 #| label: wd-3-date
+#Lab 5, Pulling crime scene report
 
+crime_scene_report |>
+  mutate(date = ymd(date)) |>
+  filter(date == "2018-01-15",
+         city == "SQL City",
+         type == "murder") |>
+  pull(description) 
+
+#Revised. Based on feedback, I implemented a lubridate function for date. 
 ```
 
 **WD-4: I can modify existing variables and create new variables in a dataframe for a *variety* of data types (e.g., numeric, integer, character, factor, date).**
@@ -83,6 +164,14 @@ execute:
 
 ```{r}
 #| label: wd-4-numeric
+#Challenge 3, Question 1
+
+teacher_evals_compare <- teacher_evals_clean |>
+  filter(question_no == 903) |>
+  mutate(
+    SET_level = ifelse(SET_score_avg >= 4, "excellent", "standard"),
+    sen_level = ifelse(seniority <= 4, "junior", "senior")) |>
+    select(course_id, SET_level, sen_level)
 
 ```
 
@@ -90,7 +179,24 @@ execute:
 
 ```{r}
 #| label: wd-4-string
+#Lab 4, Question 3
 
+ca_childcare <- ca_childcare |> 
+  mutate(county_name = str_remove(county_name, " County")) |>
+  mutate(
+    region = fct_collapse(county_name,
+                      "Superior California" = c("Butte", "Colusa", "El Dorado", "Glenn", "Lassen", "Modoc", "Nevada", "Placer", "Plumas", "Sacramento", "Shasta", "Sierra", "Siskiyou", "Sutter", "Tehama", "Yolo", "Yuba"),
+      "North Coast" = c("Del Norte", "Humboldt", "Lake", "Mendocino", "Napa", "Sonoma", "Trinity"),
+      "San Francisco Bay Area" = c("Alameda", "Contra Costa", "Marin", "San Francisco", "San Mateo", "Santa Clara", "Solano"),
+      "Northern San Joaquin Valley" = c("Alpine", "Amador", "Calaveras", "Madera", "Mariposa", "Merced", "Mono", "San Joaquin", "Stanislaus", "Tuolumne"),
+      "Central Coast" = c("Monterey", "San Benito", "San Luis Obispo", "Santa Barbara", "Santa Cruz", "Ventura"),
+      "Southern San Joaquin Valley" = c("Fresno", "Inyo", "Kern", "Kings", "Tulare"),
+      "Inland Empire" = c("Riverside", "San Bernardino"),
+      "Los Angeles" = c("Los Angeles"),
+      "Orange" = c("Orange"),
+      "San Diego - Imperial" = c("Imperial", "San Diego")
+    )
+  )
 ```
 
 -   factor (example must use functions from **forcats**)
@@ -98,13 +204,40 @@ execute:
 ```{r}
 #| label: wd-4-factor
 
+#Lab 4, Question 3
+
+ca_childcare <- ca_childcare |> 
+  mutate(county_name = str_remove(county_name, " County")) |>
+  mutate(
+    region = fct_collapse(county_name,
+                      "Superior California" = c("Butte", "Colusa", "El Dorado", "Glenn", "Lassen", "Modoc", "Nevada", "Placer", "Plumas", "Sacramento", "Shasta", "Sierra", "Siskiyou", "Sutter", "Tehama", "Yolo", "Yuba"),
+      "North Coast" = c("Del Norte", "Humboldt", "Lake", "Mendocino", "Napa", "Sonoma", "Trinity"),
+      "San Francisco Bay Area" = c("Alameda", "Contra Costa", "Marin", "San Francisco", "San Mateo", "Santa Clara", "Solano"),
+      "Northern San Joaquin Valley" = c("Alpine", "Amador", "Calaveras", "Madera", "Mariposa", "Merced", "Mono", "San Joaquin", "Stanislaus", "Tuolumne"),
+      "Central Coast" = c("Monterey", "San Benito", "San Luis Obispo", "Santa Barbara", "Santa Cruz", "Ventura"),
+      "Southern San Joaquin Valley" = c("Fresno", "Inyo", "Kern", "Kings", "Tulare"),
+      "Inland Empire" = c("Riverside", "San Bernardino"),
+      "Los Angeles" = c("Los Angeles"),
+      "Orange" = c("Orange"),
+      "San Diego - Imperial" = c("Imperial", "San Diego")
+    )
+  )
 ```
 
 -   date (example must use functions from **lubridate**)
 
 ```{r}
 #| label: wd-4-date
+#Lab 5, Pulling crime scene report
 
+crime_scene_report |>
+  mutate(date = ymd(date)) |>
+  filter(date == "2018-01-15",
+         city == "SQL City",
+         type == "murder") |>
+  pull(description) 
+
+#Revised. Based on feedback, I implemented a lubridate function for date. 
 ```
 
 **WD-5: I can use mutating joins to combine multiple dataframes.**
@@ -113,21 +246,69 @@ execute:
 
 ```{r}
 #| label: wd-5-left
+#Lab 5, Find who hired initial suspect
 
+facebook_event_checkin |>
+  left_join(person,
+             by = join_by(person_id == id)
+             ) |>
+  inner_join(drivers_license,
+             by = join_by(license_id == id )
+              ) |>
+  filter(hair_color == "red",
+           car_make == "Tesla",
+           car_model == "Model S",
+           event_name == "SQL Symphony Concert")
+
+#Revised. Avoided using several filter fucntions and instead condensed to one. Also revised to demonstrate proficiency in left_join(). 
 ```
 
 -   `right_join()`
 
 ```{r}
 #| label: wd-5-right
+#Lab 5, Finding Initial Suspect
 
+get_fit_now_check_in |>
+    right_join(get_fit_now_member,
+               by = join_by(membership_id == id)
+               )|>
+    inner_join(person,
+               by = join_by(person_id == id,
+                            name == name)
+               ) |>
+    inner_join(drivers_license,
+               by = join_by(license_id == id)
+               ) |>
+    filter(check_in_date == 20180109,
+          str_detect(membership_id, "^48Z"),
+          str_detect(plate_number, "H42W"))
+
+#Revised. Avoided using several filter fucntions and instead condensed to one. Also revised to demonstrate proficiency in right_join(). 
 ```
 
 -   `inner_join()`
 
 ```{r}
 #| label: wd-5-inner
+#Lab 5, Finding Initial Suspect
 
+get_fit_now_check_in |>
+    right_join(get_fit_now_member,
+               by = join_by(membership_id == id)
+               )|>
+    inner_join(person,
+               by = join_by(person_id == id,
+                            name == name)
+               ) |>
+    inner_join(drivers_license,
+               by = join_by(license_id == id)
+               ) |>
+    filter(check_in_date == 20180109,
+          str_detect(membership_id, "^48Z"),
+          str_detect(plate_number, "H42W"))
+
+#Revised. Avoided using several filter fucntions and instead condensed to one. Also revised to demonstrate proficiency in right_join(). 
 ```
 
 -   `full_join()`
@@ -159,6 +340,52 @@ execute:
 
 ```{r}
 #| label: wd-7-long
+# Lab 4, Question 6
+
+ca_childcare_long <- ca_childcare |> 
+  pivot_longer(cols = c(mc_infant, mc_toddler, mc_preschool),
+               names_to = "care_type",
+               values_to = "median_price")
+
+ca_childcare_long <- ca_childcare_long |>
+  mutate(care_type = factor(care_type, levels = c("mc_infant", "mc_toddler", "mc_preschool")),
+         region = factor(region, levels = c("San Francisco Bay Area",
+                                            "Orange",
+                                            "Los Angeles",
+                                            "Northern San Joaquin Valley",
+                                            "Central Coast",
+                                            "Inland Empire",
+                                            "Superior California",
+                                            "Southern San Joaquin Valley",
+                                            "San Diego - Imperial",
+                                            "North Coast")))
+                                  
+ggplot(ca_childcare_long, mapping = aes(x = study_year, 
+                              y = median_price,
+                              color = region, 
+                              group = region)) +
+  geom_point() +
+  geom_smooth() +
+  facet_grid(~ care_type,labeller = as_labeller(c("mc_infant" = "Infants",
+                                                  "mc_toddler" = "Toddlers",
+                                                  "mc_preschool" = "Preschool"))) +
+  scale_x_continuous(breaks = seq(2008, 2018, by = 2), 
+                     labels = seq(2008, 2018, by = 2)) +
+  labs(
+    title = "Weekly Median Price for Center-Based Childcare ($)",
+    x = "Study Year",
+    y = NULL,
+    color = "Region"
+  ) +
+theme_bw() +
+  theme(
+    text = element_text(size = 8),         
+    strip.text = element_text(size = 9),   
+    legend.text = element_text(size = 7),  
+    legend.title = element_text(size = 10),
+    aspect.ratio = 1)
+
+#Revised. Reodered facets and legend values according to feedback. Adjusted text sides to avoid it being squished. 
 
 ```
 
@@ -166,7 +393,21 @@ execute:
 
 ```{r}
 #| label: wd-7-wide
+# Lab 4, Question 4
 
+income <- ca_childcare |>
+  filter(study_year %in% c(2008, 2018)) |>
+  group_by(region, study_year) |>
+  summarise(median_income = median(mhi_2018, na.rm = TRUE), .groups = 'drop') |>
+  pivot_wider(names_from = study_year,
+              values_from = median_income) |>
+  rename(
+    "Median Income in 2008 (2018 Dollars)" = `2008`,
+    "Median Income in 2018 (2018 Dollars)" = `2018`
+  ) |>
+  arrange(`Median Income in 2018 (2018 Dollars)`)
+  
+#Revised. Based on feedback to give column names better titles, I used the rename() function to better name the two income columns. 
 ```
 
 ## Reproducibility
@@ -181,6 +422,16 @@ I've done this in the following provided assignments:
 
 ```{r}
 #| label: r-2-1
+#Lab 2, Question 4
+
+ggplot(data = surveys,
+       mapping = aes(x = weight, y = hindfoot_length)) +
+  geom_point(alpha = 0.5) +
+  facet_wrap(~ species) +
+  labs(x = "Weight (g)",
+       y = NULL, 
+       title = "Weight (g) vs. Hindfoot Length (mm) by Animal Species",
+       subtitle = "Hindfoot Length (mm)")
 
 ```
 
@@ -188,14 +439,58 @@ I've done this in the following provided assignments:
 
 ```{r}
 #| label: r-2-2
+#Lab 3, Question 5
 
+teacher_evals_clean <- evals|>
+  rename(sex = gender) |>
+  filter(no_participants > 10) |>
+  mutate(
+    across(c(teacher_id, 
+             question_no, 
+             seniority), 
+           as.character)
+    ) |>
+  select(course_id, 
+         teacher_id, 
+         question_no,
+         no_participants, 
+         resp_share, 
+         SET_score_avg, 
+         percent_failed_cur, 
+         academic_degree,
+         seniority, 
+         sex)
+
+#Revised. Dr T provided feedback that led me to change my filter() and make the data type change more efficient by using the across() function!
 ```
 
 -   Example of function formatting
 
 ```{r}
 #| label: r-2-3
+#Lab 3 Question 5
 
+teacher_evals_clean <- evals|>
+  rename(sex = gender) |>
+  filter(no_participants > 10) |>
+  mutate(
+    across(c(teacher_id, 
+             question_no, 
+             seniority), 
+           as.character)
+    ) |>
+  select(course_id, 
+         teacher_id, 
+         question_no,
+         no_participants, 
+         resp_share, 
+         SET_score_avg, 
+         percent_failed_cur, 
+         academic_degree,
+         seniority, 
+         sex)
+
+#Revised. Dr T provided feedback that led me to change my filter() and make the data type change more efficient by using the across() function!
 ```
 
 **R-3: I can write robust programs that are resistant to changes in inputs.**
@@ -204,6 +499,10 @@ I've done this in the following provided assignments:
 
 ```{r}
 #| label: r-3-example
+# Lab 3 Question 7
+
+teacher_evals_clean |>
+   filter(if_any(everything(), is.na))
 
 ```
 
@@ -222,13 +521,29 @@ I've done this in the following provided assignments:
 
 ```{r}
 #| label: dvs-1-num
+#Lab 2, Question 4
 
+ggplot(data = surveys,
+       mapping = aes(x = weight, y = hindfoot_length)) +
+  geom_point(alpha = 0.5) +
+  facet_wrap(~ species) +
+  labs(x = "Weight (g)",
+       y = NULL, 
+       title = "Weight (g) vs. Hindfoot Length (mm) by Animal Species",
+       subtitle = "Hindfoot Length (mm)")
 ```
 
 -   at least one numeric variable and one categorical variable
 
 ```{r}
 #| label: dvs-2-num-cat
+#Lab 2, Questiono 8
+
+ggplot(data = surveys,
+       mapping = aes(x = species, y = weight)) +
+  geom_boxplot(outlier.shape = NA) +
+  geom_jitter(color = "steelblue", alpha = 0.01) +
+  theme(axis.text.x = element_text(angle = 45))
 
 ```
 
@@ -237,13 +552,60 @@ I've done this in the following provided assignments:
 ```{r}
 #| label: dvs-2-cat
 
+
+
 ```
 
 -   dates (timeseries plot)
 
 ```{r}
 #| label: dvs-2-date
+#Lab 4, Question 6 
 
+ ca_childcare_long <- ca_childcare |> 
+  pivot_longer(cols = c(mc_infant, mc_toddler, mc_preschool),
+               names_to = "care_type",
+               values_to = "median_price")
+
+ca_childcare_long <- ca_childcare_long |>
+  mutate(care_type = factor(care_type, levels = c("mc_infant", "mc_toddler", "mc_preschool")),
+         region = factor(region, levels = c("San Francisco Bay Area",
+                                            "Orange",
+                                            "Los Angeles",
+                                            "Northern San Joaquin Valley",
+                                            "Central Coast",
+                                            "Inland Empire",
+                                            "Superior California",
+                                            "Southern San Joaquin Valley",
+                                            "San Diego - Imperial",
+                                            "North Coast")))
+                                  
+ggplot(ca_childcare_long, mapping = aes(x = study_year, 
+                              y = median_price,
+                              color = region, 
+                              group = region)) +
+  geom_point() +
+  geom_smooth() +
+  facet_grid(~ care_type,labeller = as_labeller(c("mc_infant" = "Infants",
+                                                  "mc_toddler" = "Toddlers",
+                                                  "mc_preschool" = "Preschool"))) +
+  scale_x_continuous(breaks = seq(2008, 2018, by = 2), 
+                     labels = seq(2008, 2018, by = 2)) +
+  labs(
+    title = "Weekly Median Price for Center-Based Childcare ($)",
+    x = "Study Year",
+    y = NULL,
+    color = "Region"
+  ) +
+theme_bw() +
+  theme(
+    text = element_text(size = 8),         
+    strip.text = element_text(size = 9),   
+    legend.text = element_text(size = 7),  
+    legend.title = element_text(size = 10),
+    aspect.ratio = 1)
+
+#Revised. Reodered facets and legend values according to feedback. Adjusted text sides to avoid it being squished. 
 ```
 
 **DVS-2: I use plot modifications to make my visualization clear to the reader.**
@@ -252,6 +614,16 @@ I've done this in the following provided assignments:
 
 ```{r}
 #| label: dvs-2-1
+#Challenge 2, Medium
+
+ggplot(data = surveys,
+       mapping = aes(x = weight, y = species)) +
+  geom_density_ridges() +
+  geom_jitter(color = "steelblue", alpha = 0.01, width = 0.2, height = 0.2) +
+   labs(x = "Weight (g)",
+       y = NULL, 
+       title = "Weight (g) vs. Hindfoot Length (mm) by Animal Species",
+       subtitle = "Hindfoot Length (mm)")
 
 ```
 
@@ -259,14 +631,104 @@ I've done this in the following provided assignments:
 
 ```{r}
 #| label: dvs-2-2
+#Lab 4, Question 6
 
+ca_childcare_long <- ca_childcare |> 
+  pivot_longer(cols = c(mc_infant, mc_toddler, mc_preschool),
+               names_to = "care_type",
+               values_to = "median_price")
+
+ca_childcare_long <- ca_childcare_long |>
+  mutate(care_type = factor(care_type, levels = c("mc_infant", "mc_toddler", "mc_preschool")),
+         region = factor(region, levels = c("San Francisco Bay Area",
+                                            "Orange",
+                                            "Los Angeles",
+                                            "Northern San Joaquin Valley",
+                                            "Central Coast",
+                                            "Inland Empire",
+                                            "Superior California",
+                                            "Southern San Joaquin Valley",
+                                            "San Diego - Imperial",
+                                            "North Coast")))
+                                  
+ggplot(ca_childcare_long, mapping = aes(x = study_year, 
+                              y = median_price,
+                              color = region, 
+                              group = region)) +
+  geom_point() +
+  geom_smooth() +
+  facet_grid(~ care_type,labeller = as_labeller(c("mc_infant" = "Infants",
+                                                  "mc_toddler" = "Toddlers",
+                                                  "mc_preschool" = "Preschool"))) +
+  scale_x_continuous(breaks = seq(2008, 2018, by = 2), 
+                     labels = seq(2008, 2018, by = 2)) +
+  labs(
+    title = "Weekly Median Price for Center-Based Childcare ($)",
+    x = "Study Year",
+    y = NULL,
+    color = "Region"
+  ) +
+theme_bw() +
+  theme(
+    text = element_text(size = 8),         
+    strip.text = element_text(size = 9),   
+    legend.text = element_text(size = 7),  
+    legend.title = element_text(size = 10),
+    aspect.ratio = 1)
+
+#Revised. Reodered facets and legend values according to feedback. Adjusted text sides to avoid it being squished. 
 ```
 
 -   I can reorder my legend to align with the colors in my plot
 
 ```{r}
 #| label: dvs-2-3
+#Lab 4, Question 6
 
+ca_childcare_long <- ca_childcare |> 
+  pivot_longer(cols = c(mc_infant, mc_toddler, mc_preschool),
+               names_to = "care_type",
+               values_to = "median_price")
+
+ca_childcare_long <- ca_childcare_long |>
+  mutate(care_type = factor(care_type, levels = c("mc_infant", "mc_toddler", "mc_preschool")),
+         region = factor(region, levels = c("San Francisco Bay Area",
+                                            "Orange",
+                                            "Los Angeles",
+                                            "Northern San Joaquin Valley",
+                                            "Central Coast",
+                                            "Inland Empire",
+                                            "Superior California",
+                                            "Southern San Joaquin Valley",
+                                            "San Diego - Imperial",
+                                            "North Coast")))
+                                  
+ggplot(ca_childcare_long, mapping = aes(x = study_year, 
+                              y = median_price,
+                              color = region, 
+                              group = region)) +
+  geom_point() +
+  geom_smooth() +
+  facet_grid(~ care_type,labeller = as_labeller(c("mc_infant" = "Infants",
+                                                  "mc_toddler" = "Toddlers",
+                                                  "mc_preschool" = "Preschool"))) +
+  scale_x_continuous(breaks = seq(2008, 2018, by = 2), 
+                     labels = seq(2008, 2018, by = 2)) +
+  labs(
+    title = "Weekly Median Price for Center-Based Childcare ($)",
+    x = "Study Year",
+    y = NULL,
+    color = "Region"
+  ) +
+theme_bw() +
+  theme(
+    text = element_text(size = 8),         
+    strip.text = element_text(size = 9),   
+    legend.text = element_text(size = 7),  
+    legend.title = element_text(size = 10),
+    aspect.ratio = 1)
+
+#Revised. Reodered facets and legend values according to feedback. Adjusted text sides to avoid it being squished. 
 ```
 
 **DVS-3: I show creativity in my visualizations**
@@ -275,13 +737,41 @@ I've done this in the following provided assignments:
 
 ```{r}
 #| label: dvs-3-1
+#Challenge 2, Medium 
 
+ggplot(data = surveys,
+       mapping = aes(x = weight, y = species)) +
+  geom_density_ridges() +
+  geom_jitter(color = "steelblue", alpha = 0.01, width = 0.2, height = 0.2) +
+   labs(x = "Weight (g)",
+       y = NULL, 
+       title = "Weight (g) vs. Hindfoot Length (mm) by Animal Species",
+       subtitle = "Hindfoot Length (mm)")
 ```
 
 -   I can use annotations
 
 ```{r}
 #| label: dvs-3-2
+# Lab 2, Question 16
+
+ggplot(data = surveys,
+       mapping = aes(x = weight, y = species)) +
+  geom_boxplot(outlier.shape = NA) +
+  geom_jitter(color = "steelblue", alpha = 0.01) +
+   labs(x = "Weight (g)",
+       y = NULL, 
+       title = "Weight (g) vs. Hindfoot Length (mm) by Animal Species",
+       subtitle = "Hindfoot Length (mm)") +
+  annotate("text", 
+           label = "Albigia species has the largest range!", 
+           x = 200, 
+           y = "baileyi", 
+           color = "red", 
+           size = 4, 
+           fontface = "italic") 
+
+#Revised to include annotation.
 
 ```
 
@@ -289,7 +779,21 @@ I've done this in the following provided assignments:
 
 ```{r}
 #| label: dvs-3-3
+#Lab 2, Question 16
 
+ggplot(data = surveys,
+       mapping = aes(x = weight, y = species)) +
+  geom_boxplot(outlier.shape = NA) +
+  geom_jitter(color = "steelblue", alpha = 0.01) +
+  annotate("text", 
+           label = "Albigia species has the largest range", 
+           x = 200, 
+           y = "Albigia",  
+           color = "red", 
+           size = 4, 
+           fontface = "italic")  
+
+#Revised to include annotation.
 ```
 
 **DVS-4: I can calculate numerical summaries of variables.**
@@ -298,14 +802,50 @@ I've done this in the following provided assignments:
 
 ```{r}
 #| label: dvs-4-summarize
+#Lab 4, Question 4
 
+income <- ca_childcare |>
+  filter(study_year %in% c(2008, 2018)) |>
+  group_by(region, study_year) |>
+  summarise(median_income = median(mhi_2018, na.rm = TRUE), .groups = 'drop') |>
+  pivot_wider(names_from = study_year,
+              values_from = median_income) |>
+  rename(
+    "Median Income in 2008 (2018 Dollars)" = `2008`,
+    "Median Income in 2018 (2018 Dollars)" = `2018`
+  ) |>
+  arrange(`Median Income in 2018 (2018 Dollars)`)
+
+#Revised. Based on feedback to give column names better titles, I used the rename() function to better name the two income columns. 
 ```
 
 -   Example using `across()`
 
 ```{r}
 #| label: dvs-4-across
+#Lab 3, Quesiton 5
 
+teacher_evals_clean <- evals|>
+  rename(sex = gender) |>
+  filter(no_participants > 10) |>
+  mutate(
+    across(c(teacher_id, 
+             question_no, 
+             seniority), 
+           as.character)
+            ) |>
+  select(course_id,
+         teacher_id,
+         question_no,
+         no_participants,
+         resp_share,
+         SET_score_avg,
+         percent_failed_cur,
+         academic_degree,
+         seniority, 
+         sex)
+
+#Revised. Dr T provided feedback that led me to change my filter() and make the data type change more efficient by using the across() function!
 ```
 
 **DVS-5: I can find summaries of variables across multiple groups.**
@@ -314,14 +854,35 @@ I've done this in the following provided assignments:
 
 ```{r}
 #| label: dvs-5-1
+#Lab 4, Question 4
 
+income <- ca_childcare |>
+  filter(study_year %in% c(2008, 2018)) |>
+  group_by(region, study_year) |>
+  summarise(median_income = median(mhi_2018, na.rm = TRUE), .groups = 'drop') |>
+  pivot_wider(names_from = study_year,
+              values_from = median_income) |>
+  rename(
+    "Median Income in 2008 (2018 Dollars)" = `2008`,
+    "Median Income in 2018 (2018 Dollars)" = `2018`
+  ) |>
+  arrange(`Median Income in 2018 (2018 Dollars)`)
+#Revised. Based on feedback to give column names better titles, I used the rename() function to better name the two income columns. 
 ```
 
 -   Example 2
 
 ```{r}
 #| label: dvs-5-2
+# Lab 4, Question 5
 
+lowest_mc_infant <- ca_childcare |>
+  filter(study_year == "2018") |>
+  group_by(region) |>
+  summarise(median_mc_infant = median(mc_infant, na.rm = TRUE)) |>
+  slice_min(median_mc_infant)
+
+#Revised to be more efficient, using slice_min().
 ```
 
 **DVS-6: I can create tables which make my summaries clear to the reader.**
@@ -330,14 +891,25 @@ I've done this in the following provided assignments:
 
 ```{r}
 #| label: dvs-6-1
+#Lab 1, Question 2
 
+# Load a dataset into the R Environment.
+data(ToothGrowth)
+
+# Look at the summary of the variables in the dataset.
+summary(ToothGrowth)
 ```
 
 -   Example 2
 
 ```{r}
 #| label: dvs-6-2
+# Lab 3, Question 9 
 
+teacher_evals_clean |>
+  group_by(course_id, teacher_id) |>       
+  summarise(num_questions = n_distinct(question_no)) |>
+  filter(num_questions == 9) 
 ```
 
 **DVS-7: I show creativity in my tables.**
@@ -364,14 +936,48 @@ I've done this in the following provided assignments:
 
 ```{r}
 #| label: pe-1-one-call
+#Lab 5, Finding who hired initial suspect
 
+facebook_event_checkin |>
+  left_join(person,
+             by = join_by(person_id == id)
+             ) |>
+  inner_join(drivers_license,
+             by = join_by(license_id == id )
+              ) |>
+  filter(hair_color == "red",
+           car_make == "Tesla",
+           car_model == "Model S",
+           event_name == "SQL Symphony Concert") 
 ```
 
 -   `across()`
 
 ```{r}
 #| label: pe-1-across
+#Lab 3, Quesiton 5
 
+teacher_evals_clean <- evals|>
+  rename(sex = gender) |>
+  filter(no_participants > 10) |>
+  mutate(
+    across(c(teacher_id, 
+             question_no, 
+             seniority), 
+           as.character)
+            ) |>
+  select(course_id,
+         teacher_id,
+         question_no,
+         no_participants,
+         resp_share,
+         SET_score_avg,
+         percent_failed_cur,
+         academic_degree,
+         seniority, 
+         sex)
+
+#Revised. Dr T provided feedback that led me to change my filter() and make the data type change more efficient by using the across() function!
 ```
 
 -   `map()` functions
@@ -387,6 +993,8 @@ I've done this in the following provided assignments:
 
 ```{r}
 #| label: pe-2-1
+
+
 
 ```
 
@@ -426,14 +1034,67 @@ I've done this in the following provided assignments:
 
 ```{r}
 #| label: pe-4-1
+#Lab 4, Question 5
 
+lowest_mc_infant <- ca_childcare |>
+  filter(study_year == "2018") |>
+  group_by(region) |>
+  summarise(median_mc_infant = median(mc_infant, na.rm = TRUE)) |>
+  slice_min(median_mc_infant)
+
+#Revised to be more efficient, using slice_min().
 ```
 
 -   I can connect a data wrangling pipeline into a `ggplot()`
 
 ```{r}
 #| label: pe-4-2
+#Lab 4, Question 6
 
+ca_childcare_long <- ca_childcare |> 
+  pivot_longer(cols = c(mc_infant, mc_toddler, mc_preschool),
+               names_to = "care_type",
+               values_to = "median_price")
+
+ca_childcare_long <- ca_childcare_long |>
+  mutate(care_type = factor(care_type, levels = c("mc_infant", "mc_toddler", "mc_preschool")),
+         region = factor(region, levels = c("San Francisco Bay Area",
+                                            "Orange",
+                                            "Los Angeles",
+                                            "Northern San Joaquin Valley",
+                                            "Central Coast",
+                                            "Inland Empire",
+                                            "Superior California",
+                                            "Southern San Joaquin Valley",
+                                            "San Diego - Imperial",
+                                            "North Coast")))
+                                  
+ggplot(ca_childcare_long, mapping = aes(x = study_year, 
+                              y = median_price,
+                              color = region, 
+                              group = region)) +
+  geom_point() +
+  geom_smooth() +
+  facet_grid(~ care_type,labeller = as_labeller(c("mc_infant" = "Infants",
+                                                  "mc_toddler" = "Toddlers",
+                                                  "mc_preschool" = "Preschool"))) +
+  scale_x_continuous(breaks = seq(2008, 2018, by = 2), 
+                     labels = seq(2008, 2018, by = 2)) +
+  labs(
+    title = "Weekly Median Price for Center-Based Childcare ($)",
+    x = "Study Year",
+    y = NULL,
+    color = "Region"
+  ) +
+theme_bw() +
+  theme(
+    text = element_text(size = 8),         
+    strip.text = element_text(size = 9),   
+    legend.text = element_text(size = 7),  
+    legend.title = element_text(size = 10),
+    aspect.ratio = 1)
+
+#Revised. Reodered facets and legend values according to feedback. Adjusted text sides to avoid it being squished. 
 ```
 
 ## Data Simulation & Statisical Models
@@ -460,19 +1121,27 @@ I've done this in the following provided assignments:
 
 ```{r}
 #| label: dsm-2-1
+#Lab 2, Question 17
 
+species_mod <- aov(lm(weight ~ species, data = surveys))
+
+summary(species_mod)
 ```
 
 -   Example 2
 
 ```{r}
 #| label: dsm-2-2
+#Challenge 3 Question 3
 
+chisq.test(teacher_evals_compare$sen_level, teacher_evals_compare$SET_level)
 ```
 
 ## Revising My Thinking
 
 <!-- How did you revise your thinking throughout the course? How did you revise your thinking on the code examples you have provided in your portfolio? -->
+
+My thinking regarding R and statistical computation has become much more centered around efficiency. Most of my feedback across my labs and challenges have been related to efficiency or format, and I have worked in my prior revisions as well as throughout this portfolio to make my code as efficient as possible. I've submitted revisions for most assignments thus far, and plan to do so for each assignment. I've noticed on my feedback that sometimes I let feedback slip through the cracks and don't realize that I made a mistake previously that I should fix, causing repeated feedback.
 
 <!-- For the revisions included in your Portfolio, to help me understand the nature of your revisions, please denote somehow the feedback I provided you (e.g., boldface, italics, colored text) before your revisions. -->
 
@@ -480,8 +1149,16 @@ I've done this in the following provided assignments:
 
 <!-- How did you extended your thinking throughout the course? How did you extend your thinking on the code examples you have provided in your portfolio? -->
 
+My thinking has extended a lot during this class! This is because I thought I had a good grasp of R functions before entering this class, to learn that I had barely tipped the iceberg of everything that is possible in R. I've extended my thinking by rather than defaulting to the methods that I was comfortable with prior to this class, to be open minded and learn to be proficient in these amazing tools! As far as this portfolio, I've extended my thinking because now I see the purpose in each step in each lab, and how they have all contributed to my learning. It feels like a huge puzzle finally starting to come together, and now I see connections between my code chunks across this portfolio! This portfolio has also led me to be much more aware of where I need to improve, which is a huge part in extending my thinking. For the most part, I make an effort to push myself and succeed at the challenge problems. Sometimes I fall back in this area when I have less time or poor time management.
+
 ## Peer Support & Collaboration
 
 <!-- Include an image or a description of feedback you gave that you are proud of (either in a peer review or in Discord). -->
 
+Here is a copy-paste of feedback that I'm proud of from my Lab 4 Peer Review.
+
+"Your code is very tidy and easy to read! I especially liked how you made a new line for every value in your vectors. It made it super easy to read and I will definitely be doing the same from now on! As far as your graphs, I thought it was great that you made the y axis label blank to avoid the reader from having to read the axis label sideways. But, I think it would be great to still include a y axis label using "substitle = " so that it is still clear regarding what's being measured! This will also help in maxing your title and axis labels shorter and more concise."
+
 <!-- Include a description of how you grew as a collaborator through the weekly pair programming activities.   -->
+
+I grew as a collaborator by being open-minded and taking approaches to problems that I would initially think are "wrong". Rather than rejecting an idea because I don't think it will work, I've learned to still try them. I've learned that there are several ways to approach a problem, and that every step and trial-and-error is a step closer to the answer. Many times, the approach that I would initially think is wrong would give us close to what we want! From there, we would reverse engineer our approach in order to completely get the right result. I think these activities have made me a better collaborator and a more open-minded person!
