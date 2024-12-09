@@ -317,7 +317,7 @@ lowest_avg_pct <- teacher_evals_clean |>
 #Revised for the purpose of fulfilling semi-join and anti-join requirement. I previously filtered within the teacher_evals_clean dataset, but I made a new dataset with filter requirements in order to use semi-join and anti-joins. 
 ```
 
--   re
+-   
 -   `anti_join()`
 
 ```{r}
