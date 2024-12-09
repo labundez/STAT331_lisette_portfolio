@@ -11,7 +11,7 @@ execute:
   echo: true
 ---
 
-[**My Grade:**]{.underline} I believe my grade equivalent to course work evidenced below to be a B.
+[**My Grade:**]{.underline} I believe my grade equivalent to course work evidenced below to be a A-.
 
 [**Learning Objective Evidence:**]{.underline} In the code chunks below, provide code from Lab or Challenge assignments where you believe you have demonstrated proficiency with the specified learning target. Be sure to specify **where** the code came from (e.g., Lab 4 Question 2).
 
@@ -72,7 +72,6 @@ teacher_evals_clean <- evals|>
          seniority, 
          sex)
 
-#Revised. Dr T provided feedback that led me to change my filter() and make the data type change more efficient by using the across() function!
 ```
 
 **WD-3: I can filter rows from a dataframe for a *variety* of data types (e.g., numeric, integer, character, factor, date).**
@@ -103,7 +102,6 @@ teacher_evals_clean <- evals|>
          seniority, 
          sex)
   
-#Revised. Dr T provided feedback that led me to change my filter() and make the data type change more efficient by using the across() function!
 ```
 
 -   character -- specifically a string (example must use functions from **stringr**)
@@ -125,21 +123,15 @@ person |>
 
 ```{r}
 #| label: wd-3-factor
-# Lab 4 Question 4
+#Lab 5, Pulling crime scene report
 
-income <- ca_childcare |>
-  filter(study_year %in% c(2008, 2018)) |>
-  group_by(region, study_year) |>
-  summarise(median_income = median(mhi_2018, na.rm = TRUE), .groups = 'drop') |>
-  pivot_wider(names_from = study_year,
-              values_from = median_income) |>
-  rename(
-    "Median Income in 2008 (2018 Dollars)" = `2008`,
-    "Median Income in 2018 (2018 Dollars)" = `2018`
-  ) |>
-  arrange(`Median Income in 2018 (2018 Dollars)`)
+crime_scene_report |>
+  mutate(date = ymd(date)) |>
+  filter(date == "2018-01-15",
+         city == "SQL City",
+         type == "murder") |>
+  pull(description) 
 
-#Revised. Based on feedback to give column names better titles, I used the rename() function to better name the two income columns. 
 ```
 
 -   date (example must use functions from **lubridate**)
@@ -155,7 +147,6 @@ crime_scene_report |>
          type == "murder") |>
   pull(description) 
 
-#Revised. Based on feedback, I implemented a lubridate function for date. 
 ```
 
 **WD-4: I can modify existing variables and create new variables in a dataframe for a *variety* of data types (e.g., numeric, integer, character, factor, date).**
@@ -179,31 +170,24 @@ teacher_evals_compare <- teacher_evals_clean |>
 
 ```{r}
 #| label: wd-4-string
-#Lab 4, Question 3
+#Lab 5, Finding interview for witness #2
 
-ca_childcare <- ca_childcare |> 
-  mutate(county_name = str_remove(county_name, " County")) |>
-  mutate(
-    region = fct_collapse(county_name,
-                      "Superior California" = c("Butte", "Colusa", "El Dorado", "Glenn", "Lassen", "Modoc", "Nevada", "Placer", "Plumas", "Sacramento", "Shasta", "Sierra", "Siskiyou", "Sutter", "Tehama", "Yolo", "Yuba"),
-      "North Coast" = c("Del Norte", "Humboldt", "Lake", "Mendocino", "Napa", "Sonoma", "Trinity"),
-      "San Francisco Bay Area" = c("Alameda", "Contra Costa", "Marin", "San Francisco", "San Mateo", "Santa Clara", "Solano"),
-      "Northern San Joaquin Valley" = c("Alpine", "Amador", "Calaveras", "Madera", "Mariposa", "Merced", "Mono", "San Joaquin", "Stanislaus", "Tuolumne"),
-      "Central Coast" = c("Monterey", "San Benito", "San Luis Obispo", "Santa Barbara", "Santa Cruz", "Ventura"),
-      "Southern San Joaquin Valley" = c("Fresno", "Inyo", "Kern", "Kings", "Tulare"),
-      "Inland Empire" = c("Riverside", "San Bernardino"),
-      "Los Angeles" = c("Los Angeles"),
-      "Orange" = c("Orange"),
-      "San Diego - Imperial" = c("Imperial", "San Diego")
-    )
-  )
+person |>
+  inner_join(interview, 
+             by = join_by(id == person_id)
+             ) |>
+  mutate(first_name = word(name, 1)
+         ) |>
+  filter(first_name == "Annabel",
+         address_street_name == "Franklin Ave") |>
+  pull(transcript)
+
 ```
 
 -   factor (example must use functions from **forcats**)
 
 ```{r}
 #| label: wd-4-factor
-
 #Lab 4, Question 3
 
 ca_childcare <- ca_childcare |> 
@@ -236,8 +220,6 @@ crime_scene_report |>
          city == "SQL City",
          type == "murder") |>
   pull(description) 
-
-#Revised. Based on feedback, I implemented a lubridate function for date. 
 ```
 
 **WD-5: I can use mutating joins to combine multiple dataframes.**
@@ -260,7 +242,6 @@ facebook_event_checkin |>
            car_model == "Model S",
            event_name == "SQL Symphony Concert")
 
-#Revised. Avoided using several filter fucntions and instead condensed to one. Also revised to demonstrate proficiency in left_join(). 
 ```
 
 -   `right_join()`
@@ -283,8 +264,6 @@ get_fit_now_check_in |>
     filter(check_in_date == 20180109,
           str_detect(membership_id, "^48Z"),
           str_detect(plate_number, "H42W"))
-
-#Revised. Avoided using several filter fucntions and instead condensed to one. Also revised to demonstrate proficiency in right_join(). 
 ```
 
 -   `inner_join()`
@@ -307,15 +286,6 @@ get_fit_now_check_in |>
     filter(check_in_date == 20180109,
           str_detect(membership_id, "^48Z"),
           str_detect(plate_number, "H42W"))
-
-#Revised. Avoided using several filter fucntions and instead condensed to one. Also revised to demonstrate proficiency in right_join(). 
-```
-
--   `full_join()`
-
-```{r}
-#| label: wd-5-full
-
 ```
 
 **WD-6: I can use filtering joins to filter rows from a dataframe.**
@@ -324,14 +294,56 @@ get_fit_now_check_in |>
 
 ```{r}
 #| label: wd-6-semi
+#Lab 3, Question 12
 
+eligible_instructors <- tibble(academic_degree = c("dr", "prof"),
+                               sex = "female")
+
+highest_avg_pct <- teacher_evals_clean |>
+  semi_join(eligible_instructors, by = c("academic_degree", "sex")) |>
+  group_by(teacher_id) |>
+  summarise(avg_participants = mean(no_participants, na.rm = TRUE)) |>
+  slice_min(avg_participants)
+
+non_eligible_instructors <- tibble(academic_degree = c("ma", "no_dgr"),
+                                   sex = "male")
+
+lowest_avg_pct <- teacher_evals_clean |>
+  anti_join(eligible_instructors, by = c("academic_degree", "sex")) |>
+  group_by(teacher_id) |>
+  summarise(avg_participants = mean(no_participants, na.rm = TRUE)) |>
+  slice_max(avg_participants)
+
+#Revised for the purpose of fulfilling semi-join and anti-join requirement. I previously filtered within the teacher_evals_clean dataset, but I made a new dataset with filter requirements in order to use semi-join and anti-joins. 
 ```
 
+-   re
 -   `anti_join()`
 
 ```{r}
 #| label: wd-6-anti
 
+#Lab 3, Question 12
+
+eligible_instructors <- tibble(academic_degree = c("dr", "prof"),
+                               sex = "female")
+
+highest_avg_pct <- teacher_evals_clean |>
+  semi_join(eligible_instructors, by = c("academic_degree", "sex")) |>
+  group_by(teacher_id) |>
+  summarise(avg_participants = mean(no_participants, na.rm = TRUE)) |>
+  slice_min(avg_participants)
+
+non_eligible_instructors <- tibble(academic_degree = c("ma", "no_dgr"),
+                                   sex = "male")
+
+lowest_avg_pct <- teacher_evals_clean |>
+  anti_join(eligible_instructors, by = c("academic_degree", "sex")) |>
+  group_by(teacher_id) |>
+  summarise(avg_participants = mean(no_participants, na.rm = TRUE)) |>
+  slice_max(avg_participants)
+
+#Revised for the purpose of fulfilling semi-join and anti-join requirement. I previously filtered within the teacher_evals_clean dataset, but I made a new dataset with filter requirements in order to use semi-join and anti-joins. 
 ```
 
 **WD-7: I can pivot dataframes from long to wide and visa versa**
@@ -340,30 +352,21 @@ get_fit_now_check_in |>
 
 ```{r}
 #| label: wd-7-long
-# Lab 4, Question 6
+#Lab 4, Question 6
 
-ca_childcare_long <- ca_childcare |> 
+ca_childcare |> 
   pivot_longer(cols = c(mc_infant, mc_toddler, mc_preschool),
                names_to = "care_type",
-               values_to = "median_price")
-
-ca_childcare_long <- ca_childcare_long |>
-  mutate(care_type = factor(care_type, levels = c("mc_infant", "mc_toddler", "mc_preschool")),
-         region = factor(region, levels = c("San Francisco Bay Area",
-                                            "Orange",
-                                            "Los Angeles",
-                                            "Northern San Joaquin Valley",
-                                            "Central Coast",
-                                            "Inland Empire",
-                                            "Superior California",
-                                            "Southern San Joaquin Valley",
-                                            "San Diego - Imperial",
-                                            "North Coast")))
-                                  
-ggplot(ca_childcare_long, mapping = aes(x = study_year, 
-                              y = median_price,
-                              color = region, 
-                              group = region)) +
+               values_to = "median_price") |>
+  mutate(
+    care_type = fct_relevel(care_type, "mc_infant", "mc_toddler", "mc_preschool")
+  ) |>
+ ggplot(mapping = aes(x = study_year, 
+                      y = median_price,
+                      color = fct_reorder2(.f = region,
+                                          .x = study_year,
+                                          .y = median_price), 
+                                          group = region)) +
   geom_point() +
   geom_smooth() +
   facet_grid(~ care_type,labeller = as_labeller(c("mc_infant" = "Infants",
@@ -371,6 +374,7 @@ ggplot(ca_childcare_long, mapping = aes(x = study_year,
                                                   "mc_preschool" = "Preschool"))) +
   scale_x_continuous(breaks = seq(2008, 2018, by = 2), 
                      labels = seq(2008, 2018, by = 2)) +
+  scale_color_manual(values = colorRampPalette(brewer.pal(8, "Accent"))(10)) +
   labs(
     title = "Weekly Median Price for Center-Based Childcare ($)",
     x = "Study Year",
@@ -385,8 +389,7 @@ theme_bw() +
     legend.title = element_text(size = 10),
     aspect.ratio = 1)
 
-#Revised. Reodered facets and legend values according to feedback. Adjusted text sides to avoid it being squished. 
-
+#Revised. Reodered facets and legend using fct_reorder2() and fct_relevel(). Eliminated intermediate objects so that it is one pipeline. Also, used ChatGPT to problem solve errors while using colorRampPalette(). [https://chatgpt.com/share/67560470-673c-800e-9d04-d64f9c58f50a]
 ```
 
 -   `pivot_wider()`
@@ -406,15 +409,13 @@ income <- ca_childcare |>
     "Median Income in 2018 (2018 Dollars)" = `2018`
   ) |>
   arrange(`Median Income in 2018 (2018 Dollars)`)
-  
-#Revised. Based on feedback to give column names better titles, I used the rename() function to better name the two income columns. 
 ```
 
 ## Reproducibility
 
 **R-1: I can create professional looking, reproducible analyses using RStudio projects, Quarto documents, and the here package.**
 
-I've done this in the following provided assignments:
+I've done this in the following provided assignments: Challenge 7 and Lab 8!
 
 **R-2: I can write well documented and tidy code.**
 
@@ -461,36 +462,23 @@ teacher_evals_clean <- evals|>
          seniority, 
          sex)
 
-#Revised. Dr T provided feedback that led me to change my filter() and make the data type change more efficient by using the across() function!
 ```
 
 -   Example of function formatting
 
 ```{r}
 #| label: r-2-3
-#Lab 3 Question 5
+#Challenge 7, Question 3
 
-teacher_evals_clean <- evals|>
-  rename(sex = gender) |>
-  filter(no_participants > 10) |>
-  mutate(
-    across(c(teacher_id, 
-             question_no, 
-             seniority), 
-           as.character)
-    ) |>
-  select(course_id, 
-         teacher_id, 
-         question_no,
-         no_participants, 
-         resp_share, 
-         SET_score_avg, 
-         percent_failed_cur, 
-         academic_degree,
-         seniority, 
-         sex)
+condition_index <- function(weight, length) {
+  if(!is.numeric(weight) | !is.numeric(length)) {
+    stop("Error: Weight and Length must be numeric values")
+  }
+  CI <- (weight / (length^3)) * 100
+  return(CI)
+}
 
-#Revised. Dr T provided feedback that led me to change my filter() and make the data type change more efficient by using the across() function!
+#Revised to only use one bar in my if() statement, whereas previously I had a double bar. A single bar is in better alignment with the logic I am trying to execute. 
 ```
 
 **R-3: I can write robust programs that are resistant to changes in inputs.**
@@ -499,18 +487,40 @@ teacher_evals_clean <- evals|>
 
 ```{r}
 #| label: r-3-example
-# Lab 3 Question 7
+# Lab 3, Question 12
 
 teacher_evals_clean |>
-   filter(if_any(everything(), is.na))
+  filter(academic_degree %in% c("dr", "prof")) |>
+  filter(sex == "female") |>
+  group_by(teacher_id) |>
+  summarise(avg_participants = mean(no_participants, na.rm = TRUE)) |>
+  slice_min(avg_participants)
 
+teacher_evals_clean |>
+  filter(academic_degree %in% c("dr", "prof")) |>
+  filter(sex == "female") |>
+  group_by(teacher_id) |>
+  summarise(avg_participants = mean(no_participants, na.rm = TRUE)) |>
+  slice_max(avg_participants)
+
+#This is a revision, as I implmeted the use of slice_min() and slice_max(). 
 ```
 
 -   Example of function stops
 
 ```{r}
 #| label: r-3-function-stops
+# Challenge 7, Question 3
 
+condition_index <- function(weight, length) {
+  if(!is.numeric(weight) | !is.numeric(length)) {
+    stop("Error: Weight and Length must be numeric values")
+  }
+  CI <- (weight / (length^3)) * 100
+  return(CI)
+}
+
+#Revised to only use one bar in my if() statement, whereas previously I had a double bar. A single bar is in better alignment with the logic I am trying to execute. 
 ```
 
 ## Data Visualization & Summarization
@@ -537,13 +547,23 @@ ggplot(data = surveys,
 
 ```{r}
 #| label: dvs-2-num-cat
-#Lab 2, Questiono 8
+#Lab 2, Question 16
 
 ggplot(data = surveys,
-       mapping = aes(x = species, y = weight)) +
+       mapping = aes(x = weight, y = species)) +
   geom_boxplot(outlier.shape = NA) +
   geom_jitter(color = "steelblue", alpha = 0.01) +
-  theme(axis.text.x = element_text(angle = 45))
+   labs(x = "Weight (g)",
+       y = NULL, 
+       title = "Weight (g) vs. Hindfoot Length (mm) by Animal Species",
+       subtitle = "Hindfoot Length (mm)") +
+  annotate("text", 
+           label = "Albigia species has the largest range!", 
+           x = 200,  
+           y = "baileyi",  
+           color = "red", 
+           size = 4, 
+           fontface = "italic")  
 
 ```
 
@@ -551,7 +571,16 @@ ggplot(data = surveys,
 
 ```{r}
 #| label: dvs-2-cat
+#Challenge 3, Question 2
 
+ggplot(teacher_evals_compare, aes(x = sen_level, fill = SET_level)) +
+  geom_bar() + 
+  labs(
+    title = "Number of Sections by Seniority and SET Level",
+    x = "Seniority of Instructor",
+    y = NULL,
+    subtitle  = "Number of Sections") +
+  scale_fill_manual(values = c("excellent" = "blue", "standard" = "orange"))
 
 
 ```
@@ -560,30 +589,21 @@ ggplot(data = surveys,
 
 ```{r}
 #| label: dvs-2-date
-#Lab 4, Question 6 
+#Lab 4, Question 6
 
- ca_childcare_long <- ca_childcare |> 
+ca_childcare |> 
   pivot_longer(cols = c(mc_infant, mc_toddler, mc_preschool),
                names_to = "care_type",
-               values_to = "median_price")
-
-ca_childcare_long <- ca_childcare_long |>
-  mutate(care_type = factor(care_type, levels = c("mc_infant", "mc_toddler", "mc_preschool")),
-         region = factor(region, levels = c("San Francisco Bay Area",
-                                            "Orange",
-                                            "Los Angeles",
-                                            "Northern San Joaquin Valley",
-                                            "Central Coast",
-                                            "Inland Empire",
-                                            "Superior California",
-                                            "Southern San Joaquin Valley",
-                                            "San Diego - Imperial",
-                                            "North Coast")))
-                                  
-ggplot(ca_childcare_long, mapping = aes(x = study_year, 
-                              y = median_price,
-                              color = region, 
-                              group = region)) +
+               values_to = "median_price") |>
+  mutate(
+    care_type = fct_relevel(care_type, "mc_infant", "mc_toddler", "mc_preschool")
+  ) |>
+ ggplot(mapping = aes(x = study_year, 
+                      y = median_price,
+                      color = fct_reorder2(.f = region,
+                                          .x = study_year,
+                                          .y = median_price), 
+                                          group = region)) +
   geom_point() +
   geom_smooth() +
   facet_grid(~ care_type,labeller = as_labeller(c("mc_infant" = "Infants",
@@ -591,6 +611,7 @@ ggplot(ca_childcare_long, mapping = aes(x = study_year,
                                                   "mc_preschool" = "Preschool"))) +
   scale_x_continuous(breaks = seq(2008, 2018, by = 2), 
                      labels = seq(2008, 2018, by = 2)) +
+  scale_color_manual(values = colorRampPalette(brewer.pal(8, "Accent"))(10)) +
   labs(
     title = "Weekly Median Price for Center-Based Childcare ($)",
     x = "Study Year",
@@ -605,7 +626,7 @@ theme_bw() +
     legend.title = element_text(size = 10),
     aspect.ratio = 1)
 
-#Revised. Reodered facets and legend values according to feedback. Adjusted text sides to avoid it being squished. 
+#Revised. Reodered facets and legend using fct_reorder2() and fct_relevel(). Eliminated intermediate objects so that it is one pipeline. Also, used ChatGPT to problem solve errors while using colorRampPalette(). [https://chatgpt.com/share/67560470-673c-800e-9d04-d64f9c58f50a]
 ```
 
 **DVS-2: I use plot modifications to make my visualization clear to the reader.**
@@ -633,28 +654,19 @@ ggplot(data = surveys,
 #| label: dvs-2-2
 #Lab 4, Question 6
 
-ca_childcare_long <- ca_childcare |> 
+ca_childcare |> 
   pivot_longer(cols = c(mc_infant, mc_toddler, mc_preschool),
                names_to = "care_type",
-               values_to = "median_price")
-
-ca_childcare_long <- ca_childcare_long |>
-  mutate(care_type = factor(care_type, levels = c("mc_infant", "mc_toddler", "mc_preschool")),
-         region = factor(region, levels = c("San Francisco Bay Area",
-                                            "Orange",
-                                            "Los Angeles",
-                                            "Northern San Joaquin Valley",
-                                            "Central Coast",
-                                            "Inland Empire",
-                                            "Superior California",
-                                            "Southern San Joaquin Valley",
-                                            "San Diego - Imperial",
-                                            "North Coast")))
-                                  
-ggplot(ca_childcare_long, mapping = aes(x = study_year, 
-                              y = median_price,
-                              color = region, 
-                              group = region)) +
+               values_to = "median_price") |>
+  mutate(
+    care_type = fct_relevel(care_type, "mc_infant", "mc_toddler", "mc_preschool")
+  ) |>
+ ggplot(mapping = aes(x = study_year, 
+                      y = median_price,
+                      color = fct_reorder2(.f = region,
+                                          .x = study_year,
+                                          .y = median_price), 
+                                          group = region)) +
   geom_point() +
   geom_smooth() +
   facet_grid(~ care_type,labeller = as_labeller(c("mc_infant" = "Infants",
@@ -662,6 +674,7 @@ ggplot(ca_childcare_long, mapping = aes(x = study_year,
                                                   "mc_preschool" = "Preschool"))) +
   scale_x_continuous(breaks = seq(2008, 2018, by = 2), 
                      labels = seq(2008, 2018, by = 2)) +
+  scale_color_manual(values = colorRampPalette(brewer.pal(8, "Accent"))(10)) +
   labs(
     title = "Weekly Median Price for Center-Based Childcare ($)",
     x = "Study Year",
@@ -676,7 +689,7 @@ theme_bw() +
     legend.title = element_text(size = 10),
     aspect.ratio = 1)
 
-#Revised. Reodered facets and legend values according to feedback. Adjusted text sides to avoid it being squished. 
+#Revised. Reodered facets and legend using fct_reorder2() and fct_relevel(). Eliminated intermediate objects so that it is one pipeline. Also, used ChatGPT to problem solve errors while using colorRampPalette(). [https://chatgpt.com/share/67560470-673c-800e-9d04-d64f9c58f50a]
 ```
 
 -   I can reorder my legend to align with the colors in my plot
@@ -685,28 +698,19 @@ theme_bw() +
 #| label: dvs-2-3
 #Lab 4, Question 6
 
-ca_childcare_long <- ca_childcare |> 
+ca_childcare |> 
   pivot_longer(cols = c(mc_infant, mc_toddler, mc_preschool),
                names_to = "care_type",
-               values_to = "median_price")
-
-ca_childcare_long <- ca_childcare_long |>
-  mutate(care_type = factor(care_type, levels = c("mc_infant", "mc_toddler", "mc_preschool")),
-         region = factor(region, levels = c("San Francisco Bay Area",
-                                            "Orange",
-                                            "Los Angeles",
-                                            "Northern San Joaquin Valley",
-                                            "Central Coast",
-                                            "Inland Empire",
-                                            "Superior California",
-                                            "Southern San Joaquin Valley",
-                                            "San Diego - Imperial",
-                                            "North Coast")))
-                                  
-ggplot(ca_childcare_long, mapping = aes(x = study_year, 
-                              y = median_price,
-                              color = region, 
-                              group = region)) +
+               values_to = "median_price") |>
+  mutate(
+    care_type = fct_relevel(care_type, "mc_infant", "mc_toddler", "mc_preschool")
+  ) |>
+ ggplot(mapping = aes(x = study_year, 
+                      y = median_price,
+                      color = fct_reorder2(.f = region,
+                                          .x = study_year,
+                                          .y = median_price), 
+                                          group = region)) +
   geom_point() +
   geom_smooth() +
   facet_grid(~ care_type,labeller = as_labeller(c("mc_infant" = "Infants",
@@ -714,6 +718,7 @@ ggplot(ca_childcare_long, mapping = aes(x = study_year,
                                                   "mc_preschool" = "Preschool"))) +
   scale_x_continuous(breaks = seq(2008, 2018, by = 2), 
                      labels = seq(2008, 2018, by = 2)) +
+  scale_color_manual(values = colorRampPalette(brewer.pal(8, "Accent"))(10)) +
   labs(
     title = "Weekly Median Price for Center-Based Childcare ($)",
     x = "Study Year",
@@ -728,7 +733,7 @@ theme_bw() +
     legend.title = element_text(size = 10),
     aspect.ratio = 1)
 
-#Revised. Reodered facets and legend values according to feedback. Adjusted text sides to avoid it being squished. 
+#Revised. Reodered facets and legend using fct_reorder2() and fct_relevel(). Eliminated intermediate objects so that it is one pipeline. Also, used ChatGPT to problem solve errors while using colorRampPalette(). [https://chatgpt.com/share/67560470-673c-800e-9d04-d64f9c58f50a]
 ```
 
 **DVS-3: I show creativity in my visualizations**
@@ -737,16 +742,44 @@ theme_bw() +
 
 ```{r}
 #| label: dvs-3-1
-#Challenge 2, Medium 
+#Lab 4, Question 6
 
-ggplot(data = surveys,
-       mapping = aes(x = weight, y = species)) +
-  geom_density_ridges() +
-  geom_jitter(color = "steelblue", alpha = 0.01, width = 0.2, height = 0.2) +
-   labs(x = "Weight (g)",
-       y = NULL, 
-       title = "Weight (g) vs. Hindfoot Length (mm) by Animal Species",
-       subtitle = "Hindfoot Length (mm)")
+ca_childcare |> 
+  pivot_longer(cols = c(mc_infant, mc_toddler, mc_preschool),
+               names_to = "care_type",
+               values_to = "median_price") |>
+  mutate(
+    care_type = fct_relevel(care_type, "mc_infant", "mc_toddler", "mc_preschool")
+  ) |>
+ ggplot(mapping = aes(x = study_year, 
+                      y = median_price,
+                      color = fct_reorder2(.f = region,
+                                          .x = study_year,
+                                          .y = median_price), 
+                                          group = region)) +
+  geom_point() +
+  geom_smooth() +
+  facet_grid(~ care_type,labeller = as_labeller(c("mc_infant" = "Infants",
+                                                  "mc_toddler" = "Toddlers",
+                                                  "mc_preschool" = "Preschool"))) +
+  scale_x_continuous(breaks = seq(2008, 2018, by = 2), 
+                     labels = seq(2008, 2018, by = 2)) +
+  scale_color_manual(values = colorRampPalette(brewer.pal(8, "Accent"))(10)) +
+  labs(
+    title = "Weekly Median Price for Center-Based Childcare ($)",
+    x = "Study Year",
+    y = NULL,
+    color = "Region"
+  ) +
+theme_bw() +
+  theme(
+    text = element_text(size = 8),         
+    strip.text = element_text(size = 9),   
+    legend.text = element_text(size = 7),  
+    legend.title = element_text(size = 10),
+    aspect.ratio = 1)
+
+#Revised. Reodered facets and legend using fct_reorder2() and fct_relevel(). Eliminated intermediate objects so that it is one pipeline. Also, used ChatGPT to problem solve errors while using colorRampPalette(). [https://chatgpt.com/share/67560470-673c-800e-9d04-d64f9c58f50a]
 ```
 
 -   I can use annotations
@@ -772,28 +805,31 @@ ggplot(data = surveys,
            fontface = "italic") 
 
 #Revised to include annotation.
-
 ```
 
 -   I can be creative...
 
 ```{r}
 #| label: dvs-3-3
-#Lab 2, Question 16
+#Challenge 3, Question 2
 
-ggplot(data = surveys,
-       mapping = aes(x = weight, y = species)) +
-  geom_boxplot(outlier.shape = NA) +
-  geom_jitter(color = "steelblue", alpha = 0.01) +
-  annotate("text", 
-           label = "Albigia species has the largest range", 
-           x = 200, 
-           y = "Albigia",  
-           color = "red", 
-           size = 4, 
-           fontface = "italic")  
+ggplot(teacher_evals_compare, aes(x = sen_level, fill = SET_level)) +
+  geom_bar() + 
+  labs(
+    title = str_c("Number of Sections by Seniority and SET Level: ",
+      "<span style = 'color:blue'>**Excellent**</span>",
+      " and <span style = 'color:orange'>**Standard**</span>"),
+    x = "Seniority of Instructor",
+    y = NULL,
+    subtitle  = "Number of Sections") +
+  scale_fill_manual(values = c("excellent" = "blue", "standard" = "orange")) +
+  theme_minimal() +
+  theme(
+    plot.title = ggtext::element_markdown(size = 14),
+    legend.position = "none"
+  )
 
-#Revised to include annotation.
+#Revised to remove legend put color in title. 
 ```
 
 **DVS-4: I can calculate numerical summaries of variables.**
@@ -807,7 +843,7 @@ ggplot(data = surveys,
 income <- ca_childcare |>
   filter(study_year %in% c(2008, 2018)) |>
   group_by(region, study_year) |>
-  summarise(median_income = median(mhi_2018, na.rm = TRUE), .groups = 'drop') |>
+  summarise(median_income = median(mhi_2018, na.rm = TRUE), .groups = 'keep') |>
   pivot_wider(names_from = study_year,
               values_from = median_income) |>
   rename(
@@ -816,36 +852,21 @@ income <- ca_childcare |>
   ) |>
   arrange(`Median Income in 2018 (2018 Dollars)`)
 
-#Revised. Based on feedback to give column names better titles, I used the rename() function to better name the two income columns. 
+#Revised. Based on feedback to give column names better titles, I used the rename() function to better name the two income columns. And revised to keep groups rather than drop.
 ```
 
 -   Example using `across()`
 
 ```{r}
 #| label: dvs-4-across
-#Lab 3, Quesiton 5
+#Created an example for Lab 3
 
-teacher_evals_clean <- evals|>
-  rename(sex = gender) |>
-  filter(no_participants > 10) |>
-  mutate(
-    across(c(teacher_id, 
-             question_no, 
-             seniority), 
-           as.character)
-            ) |>
-  select(course_id,
-         teacher_id,
-         question_no,
-         no_participants,
-         resp_share,
-         SET_score_avg,
-         percent_failed_cur,
-         academic_degree,
-         seniority, 
-         sex)
+teacher_evals_clean |>
+    summarise(across(everything(), ~ sum(is.na(.))
+                     ) 
+              )
 
-#Revised. Dr T provided feedback that led me to change my filter() and make the data type change more efficient by using the across() function!
+#Because of having Lab 7 unable to use, I wanted to display my ability to calculate numerical summaries of variables in Lab 3, with the teachers evaluations dataset. This code chunk tell us that all variables have 0 NA values, except percent_failed_cur has 7 missing values. 
 ```
 
 **DVS-5: I can find summaries of variables across multiple groups.**
@@ -867,7 +888,6 @@ income <- ca_childcare |>
     "Median Income in 2018 (2018 Dollars)" = `2018`
   ) |>
   arrange(`Median Income in 2018 (2018 Dollars)`)
-#Revised. Based on feedback to give column names better titles, I used the rename() function to better name the two income columns. 
 ```
 
 -   Example 2
@@ -881,8 +901,6 @@ lowest_mc_infant <- ca_childcare |>
   group_by(region) |>
   summarise(median_mc_infant = median(mc_infant, na.rm = TRUE)) |>
   slice_min(median_mc_infant)
-
-#Revised to be more efficient, using slice_min().
 ```
 
 **DVS-6: I can create tables which make my summaries clear to the reader.**
@@ -891,25 +909,59 @@ lowest_mc_infant <- ca_childcare |>
 
 ```{r}
 #| label: dvs-6-1
-#Lab 1, Question 2
+#Lab 9, Question 2
 
-# Load a dataset into the R Environment.
-data(ToothGrowth)
+proportions_df <- proportions_df |>
+  count(ncorrect) |>
+  mutate(proportion = n / sum(n)) |>
+  select(ncorrect, proportion) |>
+  pivot_wider(names_from = ncorrect, 
+              values_from = proportion,
+              names_prefix = "correct_") 
 
-# Look at the summary of the variables in the dataset.
-summary(ToothGrowth)
+proportions_table <- proportions_df |>
+  gt() |>
+  cols_label(
+    correct_0 = "None Correct",
+    correct_1 = "One Correct",
+    correct_2 = "Two Correct",
+    correct_4 = "All Correct"
+  ) |>
+  tab_header(
+    title = "Frequency of Correct Baby Matches",
+    subtitle = "(Out of 4 babies)"
+  ) |>
+  fmt_percent() |>
+  tab_style(
+    style = cell_text(
+      size = 14,
+      align = "center"
+    ),
+    locations = cells_body()
+  ) |>
+  tab_style(
+    style = cell_text(
+      align = "center"
+    ),
+    locations = cells_column_labels()
+  )
+
+proportions_table
 ```
 
 -   Example 2
 
 ```{r}
 #| label: dvs-6-2
-# Lab 3, Question 9 
+# Lab 8, Question 4 
 
-teacher_evals_clean |>
-  group_by(course_id, teacher_id) |>       
-  summarise(num_questions = n_distinct(question_no)) |>
-  filter(num_questions == 9) 
+missing_values <- fish |>
+  map_int(~ sum(is.na(.)))
+
+kable(missing_values,
+      col.names = c("Variable", "Number of Missing Values"),
+      align = "c")
+
 ```
 
 **DVS-7: I show creativity in my tables.**
@@ -918,14 +970,120 @@ teacher_evals_clean |>
 
 ```{r}
 #| label: dvs-7-1
+#Lab 9, Question 2
 
+proportions_df <- proportions_df |>
+  count(ncorrect) |>
+  mutate(proportion = n / sum(n)) |>
+  select(ncorrect, proportion) |>
+  pivot_wider(names_from = ncorrect, 
+              values_from = proportion,
+              names_prefix = "correct_") 
+
+proportions_table <- proportions_df |>
+  gt() |>
+  cols_label(
+    correct_0 = "None Correct",
+    correct_1 = "One Correct",
+    correct_2 = "Two Correct",
+    correct_4 = "All Correct"
+  ) |>
+  tab_header(
+    title = "Frequency of Correct Baby Matches",
+    subtitle = "(Out of 4 babies)"
+  ) |>
+  fmt_percent() |>
+  tab_style(
+    style = cell_text(
+      size = 14,
+      align = "center",
+      font = "Helvetica",
+    ),
+    locations = cells_body()
+  ) |>
+  tab_style(
+    style = cell_fill(
+      color = "bisque"
+    ),
+    locations = cells_body()
+  ) |>
+  tab_style(
+    style = cell_fill(
+      color = "gray"
+    ),
+    locations = cells_column_labels()
+  ) |>
+  tab_style(
+    style = cell_text(
+      color = "white",
+      font = "Helvetica"
+    ),
+    locations = cells_column_labels()
+  )
+
+proportions_table
+
+#revised to be more creative!
 ```
 
 -   Example 2
 
 ```{r}
 #| label: dvs-7-2
+#Lab 8, Quesiton 4
 
+missing_values <- fish |>
+  map_int(~ sum(is.na(.)))
+
+
+missing_values_df <- tibble(
+  Variable = names(missing_values),
+  `Number of Missing Values` = missing_values
+)
+
+
+missing_values_table <- missing_values_df |>
+  gt() |>
+  cols_label(
+    Variable = "Variable",
+    `Number of Missing Values` = "Number of Missing Values"
+  ) |>
+  tab_header(
+    title = "Missing Values in Fish Dataset"
+  ) |>
+  tab_style(
+    style = cell_text(
+      weight = "bold",  # Make the title bold
+      align = "center"
+    ),
+    locations = cells_title()
+  ) |>
+  tab_style(
+    style = cell_text(
+      size = 14,
+      align = "center"
+    ),
+    locations = cells_body()
+  ) |>
+  tab_style(
+    style = cell_text(
+      align = "center",
+      color = "white"
+    ),
+    locations = cells_column_labels()
+  ) |>
+  tab_style(
+    style = cell_fill(color = "black"),
+    locations = cells_column_labels()
+  ) |>
+  tab_style(
+    style = cell_fill(color = "yellow"),
+    locations = cells_body(rows = 4)
+  )
+
+missing_values_table
+
+#Revised to be creative!
 ```
 
 ## Program Efficiency
@@ -976,14 +1134,28 @@ teacher_evals_clean <- evals|>
          academic_degree,
          seniority, 
          sex)
-
-#Revised. Dr T provided feedback that led me to change my filter() and make the data type change more efficient by using the across() function!
 ```
 
 -   `map()` functions
 
 ```{r}
 #| label: pe-1-map-1
+#Lab 8, Question 2
+
+result <- surveys |>
+  map_at(.at = c("teacher_id",
+                 "weekday",
+                 "academic_degree",
+                 "seniority",
+                 "gender"),
+         .f = as.character) |>
+  bind_cols()
+
+kable(result[1:20, ], col.names = gsub("[_]", " ", names(result)), 
+      align = "c") |>
+  kable_styling(font_size = 14, 
+                            position = "center")
+
 
 ```
 
@@ -993,16 +1165,35 @@ teacher_evals_clean <- evals|>
 
 ```{r}
 #| label: pe-2-1
+# Challenge 7, Question 3
 
+condition_index <- function(weight, length) {
+  if(!is.numeric(weight) | !is.numeric(length)) {
+    stop("Error: Weight and Length must be numeric values")
+  }
+  CI <- (weight / (length^3)) * 100
+  return(CI)
+}
 
-
+#Revised to only use one bar in my if() statement, whereas previously I had a double bar. A single bar is in better alignment with the logic I am trying to execute. 
 ```
 
 -   Function that operates on data frames
 
 ```{r}
 #| label: pe-2-2
+#Created a function for Lab 4
 
+flag_high_childcare_costs <- function(df, threshold) {
+  df |>
+    dplyr::mutate(
+      high_unr_16 = ifelse(unr_16 > threshold, 1, 0),
+      high_funr_16 = ifelse(funr_16 > threshold, 1, 0),
+      high_munr_16 = ifelse(munr_16 > threshold, 1, 0)
+    )
+}
+
+#Becuase of plagerism on Lab 7, I decided to create a funciton that operates on data frames on Lab 4. This function flags if the unemployment rate across the population that is aged 16 years or older is greater than a given threshold. 
 ```
 
 **PE-3:I can use iteration to reduce repetition in my code.**
@@ -1011,21 +1202,56 @@ teacher_evals_clean <- evals|>
 
 ```{r}
 #| label: pe-3-across
+#Lab 3, Question 5
 
+teacher_evals_clean <- evals|>
+  rename(sex = gender) |>
+  filter(no_participants > 10) |>
+  mutate(
+    across(c(teacher_id, 
+             question_no, 
+             seniority), 
+           as.character)
+    ) |>
+  select(course_id, 
+         teacher_id, 
+         question_no,
+         no_participants, 
+         resp_share, 
+         SET_score_avg, 
+         percent_failed_cur, 
+         academic_degree,
+         seniority, 
+         sex)
 ```
 
 -   `map()` function with **one** input (e.g., `map()`, `map_chr()`, `map_dbl()`, etc.)
 
 ```{r}
 #| label: pe-3-map-1
+#Lab 8, Question 1
 
+surveys_types <- map_chr(surveys, ~ class(.x))
+
+kable(data.frame(
+  data_type = surveys_types), 
+  col.names = c("Variable Name", "Data Type"),
+  align = "c")
 ```
 
 -   `map()` function with **more than one** input (e.g., `map_2()` or `pmap()`)
 
 ```{r}
 #| label: pe-3-map-2
+#Lab 9, Question 6
 
+all_simulations <- grid |> 
+  mutate(simulated_means = pmap(.l = list(n, df), 
+                                .f = simulate_means)
+         ) |> 
+  unnest(simulated_means) 
+
+#Revised from original submission in order to attempt the optional portion.
 ```
 
 **PE-4: I can use modern tools when carrying out my analysis.**
@@ -1034,15 +1260,10 @@ teacher_evals_clean <- evals|>
 
 ```{r}
 #| label: pe-4-1
-#Lab 4, Question 5
+#Lab 3, Question 7
 
-lowest_mc_infant <- ca_childcare |>
-  filter(study_year == "2018") |>
-  group_by(region) |>
-  summarise(median_mc_infant = median(mc_infant, na.rm = TRUE)) |>
-  slice_min(median_mc_infant)
-
-#Revised to be more efficient, using slice_min().
+teacher_evals_clean |>
+   filter(if_any(everything(), is.na))
 ```
 
 -   I can connect a data wrangling pipeline into a `ggplot()`
@@ -1051,28 +1272,19 @@ lowest_mc_infant <- ca_childcare |>
 #| label: pe-4-2
 #Lab 4, Question 6
 
-ca_childcare_long <- ca_childcare |> 
+ca_childcare |> 
   pivot_longer(cols = c(mc_infant, mc_toddler, mc_preschool),
                names_to = "care_type",
-               values_to = "median_price")
-
-ca_childcare_long <- ca_childcare_long |>
-  mutate(care_type = factor(care_type, levels = c("mc_infant", "mc_toddler", "mc_preschool")),
-         region = factor(region, levels = c("San Francisco Bay Area",
-                                            "Orange",
-                                            "Los Angeles",
-                                            "Northern San Joaquin Valley",
-                                            "Central Coast",
-                                            "Inland Empire",
-                                            "Superior California",
-                                            "Southern San Joaquin Valley",
-                                            "San Diego - Imperial",
-                                            "North Coast")))
-                                  
-ggplot(ca_childcare_long, mapping = aes(x = study_year, 
-                              y = median_price,
-                              color = region, 
-                              group = region)) +
+               values_to = "median_price") |>
+  mutate(
+    care_type = fct_relevel(care_type, "mc_infant", "mc_toddler", "mc_preschool")
+  ) |>
+ ggplot(mapping = aes(x = study_year, 
+                      y = median_price,
+                      color = fct_reorder2(.f = region,
+                                          .x = study_year,
+                                          .y = median_price), 
+                                          group = region)) +
   geom_point() +
   geom_smooth() +
   facet_grid(~ care_type,labeller = as_labeller(c("mc_infant" = "Infants",
@@ -1080,6 +1292,7 @@ ggplot(ca_childcare_long, mapping = aes(x = study_year,
                                                   "mc_preschool" = "Preschool"))) +
   scale_x_continuous(breaks = seq(2008, 2018, by = 2), 
                      labels = seq(2008, 2018, by = 2)) +
+  scale_color_manual(values = colorRampPalette(brewer.pal(8, "Accent"))(10)) +
   labs(
     title = "Weekly Median Price for Center-Based Childcare ($)",
     x = "Study Year",
@@ -1094,7 +1307,7 @@ theme_bw() +
     legend.title = element_text(size = 10),
     aspect.ratio = 1)
 
-#Revised. Reodered facets and legend values according to feedback. Adjusted text sides to avoid it being squished. 
+#Revised. Reodered facets and legend using fct_reorder2() and fct_relevel(). Eliminated intermediate objects so that it is one pipeline. Also, used ChatGPT to problem solve errors while using colorRampPalette(). [https://chatgpt.com/share/67560470-673c-800e-9d04-d64f9c58f50a]
 ```
 
 ## Data Simulation & Statisical Models
@@ -1105,14 +1318,33 @@ theme_bw() +
 
 ```{r}
 #| label: dsm-1-1
+#Lab 9, Question 1
 
+randomBabies <- function(nBabies){
+  assigned <- sample(1:nBabies, 
+                     nBabies, 
+                     replace = FALSE)
+   sum(assigned == 1:nBabies)
+}
+
+results <- map_int(.x = 1:10000,
+                   .f = ~randomBabies(4)
+                   )
 ```
 
 -   Example 2
 
 ```{r}
 #| label: dsm-1-2
+#Lab 9, Question 4
 
+simulate_means <- function(n, df){
+  map_dbl(.x = 1:n, 
+          .f = ~rchisq(n = 100, df = df) %>% mean()
+          )
+}
+
+#Revised from original submission in order to attempt the optional portion.
 ```
 
 **DSSM-2: I can conduct common statistical analyses in R.**
@@ -1141,7 +1373,7 @@ chisq.test(teacher_evals_compare$sen_level, teacher_evals_compare$SET_level)
 
 <!-- How did you revise your thinking throughout the course? How did you revise your thinking on the code examples you have provided in your portfolio? -->
 
-My thinking regarding R and statistical computation has become much more centered around efficiency. Most of my feedback across my labs and challenges have been related to efficiency or format, and I have worked in my prior revisions as well as throughout this portfolio to make my code as efficient as possible. I've submitted revisions for most assignments thus far, and plan to do so for each assignment. I've noticed on my feedback that sometimes I let feedback slip through the cracks and don't realize that I made a mistake previously that I should fix, causing repeated feedback.
+My thinking regarding R and statistical computation has become much more centered around efficiency. Most of my feedback across my labs and challenges have been related to efficiency or format, and I have worked in my prior revisions as well as throughout this portfolio to make my code as efficient as possible. There are a few sections in my final portfolio where I applied recent concepts to older labs and assignments in order to demonstrate my understanding of the concept. This required me to revise my previous approach, or look for ways to implement these concepts. I've submitted revisions for all assignments, with an exception of 2 assignments that I was not permitted to revise. These revisions helped me learn from mistakes or inefficient approaches, and take initiative to apply those changes in future assignments.
 
 <!-- For the revisions included in your Portfolio, to help me understand the nature of your revisions, please denote somehow the feedback I provided you (e.g., boldface, italics, colored text) before your revisions. -->
 
@@ -1149,15 +1381,15 @@ My thinking regarding R and statistical computation has become much more centere
 
 <!-- How did you extended your thinking throughout the course? How did you extend your thinking on the code examples you have provided in your portfolio? -->
 
-My thinking has extended a lot during this class! This is because I thought I had a good grasp of R functions before entering this class, to learn that I had barely tipped the iceberg of everything that is possible in R. I've extended my thinking by rather than defaulting to the methods that I was comfortable with prior to this class, to be open minded and learn to be proficient in these amazing tools! As far as this portfolio, I've extended my thinking because now I see the purpose in each step in each lab, and how they have all contributed to my learning. It feels like a huge puzzle finally starting to come together, and now I see connections between my code chunks across this portfolio! This portfolio has also led me to be much more aware of where I need to improve, which is a huge part in extending my thinking. For the most part, I make an effort to push myself and succeed at the challenge problems. Sometimes I fall back in this area when I have less time or poor time management.
+My thinking has extended a lot during this class! This is because I thought I had a good grasp of R functions before entering this class, to learn that I had barely tipped the iceberg of everything that is possible in R. I've extended my thinking because rather than defaulting to the inefficient methods that I was comfortable with prior to this class, I have been open minded in learning to be proficient in these amazing tools! The challenges included in this portfolio were highly beneficial in pushing myself, but they also enhanced my understanding of concepts as I applied them in a more advanced way. I did not often have the opportunitiy to attempt the optional portion of labs and assignmetns throughout the quarter due to other time committments and classes, but I'm glad I was able to now attempt some of them in this portfolio. I make efforts to push myself and succeed, especially with data analysis being my ideal career path.
 
 ## Peer Support & Collaboration
 
 <!-- Include an image or a description of feedback you gave that you are proud of (either in a peer review or in Discord). -->
 
-Here is a copy-paste of feedback that I'm proud of from my Lab 4 Peer Review.
+Here is a copy-paste of feedback that I'm proud of from my Lab 9 Peer Review.
 
-"Your code is very tidy and easy to read! I especially liked how you made a new line for every value in your vectors. It made it super easy to read and I will definitely be doing the same from now on! As far as your graphs, I thought it was great that you made the y axis label blank to avoid the reader from having to read the axis label sideways. But, I think it would be great to still include a y axis label using "substitle = " so that it is still clear regarding what's being measured! This will also help in maxing your title and axis labels shorter and more concise."
+"Hi Aakash! Your code was very easy for me to follow, especially since you made a new line after every pipe, and mostly after each comma! Great job! One thing that I noticed is that your bar graph is showing a proportion of .25 across n, which doesn't align with your findings in your table. I was having this same issue! This happens because your data is already aggregated in pivot_longer, so stat = "count" treats these as raw data points. Instead, I used stat = "identity". Additionally, an area of improvement could be being strategic with the colors used in your tables! In problem 7, the bright red and green was a bit hard on my eyes with the white text as well. I like how you wanted to use contrasting colors, but maybe using slightly less bright of colors will make it easier for the viewer! Overall great job!"
 
 <!-- Include a description of how you grew as a collaborator through the weekly pair programming activities.   -->
 

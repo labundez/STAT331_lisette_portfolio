@@ -12,7 +12,7 @@ editor: visual
 
 2.  What was the most difficult part of the class for you? List a general topic, a specific problem, a kind of work we did, etc. and explain why.
 
-    Taking what we learned in lecture and being able to apply it in a more advanced way through labs, which typically include skills we did not review in class.
+    Taking what we learned in lecture and being able to apply it in a more advanced way through labs, which were typically a level up from what we reviewed in class.
 
 3.  What was the easiest part of the class for you? Explain why.
 
